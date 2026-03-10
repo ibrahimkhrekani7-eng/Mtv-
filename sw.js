@@ -1,26 +1,17 @@
-const CACHE_NAME = 'iptv-master-v3';
-const ASSETS_TO_CACHE = [
-    'index.html',
-    'admin.html',
-    'style.css',
-    'app.js',
-    'admin.js',
-    'firebase-config.js',
-    'manifest.json'
+const CACHE_NAME = 'iptv-v1';
+const assets = [
+  './',
+  './index.html',
+  './style.css',
+  './app.js',
+  './manifest.json',
+  './icon-192x192.png'
 ];
 
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(ASSETS_TO_CACHE);
-        })
-    );
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(assets)));
 });
 
-self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
-        })
-    );
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
 });
