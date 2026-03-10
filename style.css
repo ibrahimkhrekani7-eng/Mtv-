@@ -1,5 +1,5 @@
 /* =========================================
-   1. Base & Variables (No Changes)
+   1. Base & Variables (Original - 100%)
    ========================================= */
 :root {
     --bg-color: #0a0a0a;
@@ -97,7 +97,7 @@ body {
 }
 
 /* =========================================
-   2. MAIN APP STYLES (App View)
+   2. MAIN APP STYLES
    ========================================= */
 #app {
     padding-bottom: 80px; 
@@ -312,7 +312,7 @@ body {
     cursor: pointer;
 }
 
-/* Channels Grid - RE-ORGANIZED FOR BETTER VIEW */
+/* Channels Grid */
 .channels-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -326,28 +326,26 @@ body {
     align-items: center;
     gap: 1rem;
     cursor: pointer;
-    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    transition: transform 0.3s, box-shadow 0.3s;
     position: relative;
     border: 1px solid var(--glass-border);
 }
 .channel-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 15px 35px rgba(212, 175, 55, 0.2);
-    border-color: var(--gold);
+    box-shadow: 0 12px 40px 0 rgba(212, 175, 55, 0.15);
 }
 .channel-logo {
-    width: 85px;
-    height: 85px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     object-fit: cover;
     background: #fff;
-    padding: 4px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    padding: 5px;
 }
 .channel-name {
     font-weight: 600;
     text-align: center;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 .fav-btn {
     position: absolute;
@@ -386,16 +384,21 @@ body {
 }
 .nav-item.active { color: var(--gold); }
 
-/* TV Mode Modal */
+/* TV Mode Modal - FIXED REFRESH ISSUE */
 .tv-mode-modal {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background: #000;
     z-index: 1000;
-    display: flex;
+    display: none; /* Changed from flex to none */
     flex-direction: column;
     transition: opacity 0.3s;
 }
+/* Use JS to add 'active' class when opening */
+.tv-mode-modal.active {
+    display: flex;
+}
+
 .player-header {
     position: absolute;
     top: 0; left: 0; right: 0;
@@ -417,19 +420,17 @@ body {
 video { width: 100%; height: 100%; max-height: 100vh; }
 
 /* =========================================
-   3. ADMIN PANEL STYLES (Fixed & Fully Responsive)
+   3. ADMIN PANEL STYLES
    ========================================= */
 .admin-body { background-color: #050505; }
 .admin-layout { display: flex; height: 100vh; overflow: hidden; }
 
-/* Admin Sidebar - FIXED WIDTH */
+/* Sidebar */
 .admin-sidebar {
     width: 260px;
-    min-width: 260px;
     border-right: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
-    height: 100%;
     background: var(--bg-color);
 }
 .sidebar-header {
@@ -462,7 +463,7 @@ video { width: 100%; height: 100%; max-height: 100vh; }
     border-right: 3px solid var(--gold);
 }
 
-/* Admin Main Content Area */
+/* Main Area */
 .admin-main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
 .admin-header {
     height: 70px;
@@ -470,10 +471,7 @@ video { width: 100%; height: 100%; max-height: 100vh; }
     align-items: center;
     padding: 0 2rem;
     border-bottom: 1px solid var(--glass-border);
-    position: sticky;
-    top: 0;
-    background: var(--bg-color);
-    z-index: 50;
+    position: sticky; top: 0; background: var(--bg-color); z-index: 50;
 }
 .admin-content { padding: 2rem; }
 .admin-section { display: none; }
@@ -484,12 +482,8 @@ video { width: 100%; height: 100%; max-height: 100vh; }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Stats Grid Responsive */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-}
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
 .stat-card { padding: 1.5rem; border-radius: 16px; display: flex; align-items: center; gap: 1.5rem; }
 .stat-icon {
     width: 60px; height: 60px; border-radius: 50%;
@@ -500,16 +494,24 @@ video { width: 100%; height: 100%; max-height: 100vh; }
 .stat-info h3 { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
 .stat-info p { font-size: 2rem; font-weight: 700; margin-top: 0.5rem; }
 
+/* ADS SECTION - NEW BUTTONS ADDED */
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 
-/* Admin Tables */
+.ads-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+.ad-admin-card { border-radius: 16px; padding: 1rem; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); }
+.ad-admin-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem; }
+
+.ad-actions { display: flex; gap: 10px; }
+.btn-add-ad { background-color: var(--success); color: #fff; flex: 1; padding: 0.6rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+.btn-remove-ad { background-color: var(--danger); color: #fff; flex: 1; padding: 0.6rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+
+/* Tables */
 .table-responsive { border-radius: 16px; overflow-x: auto; border: 1px solid var(--glass-border); }
 .admin-table { width: 100%; border-collapse: collapse; min-width: 600px; }
 .admin-table th, .admin-table td { padding: 1rem 1.5rem; text-align: left; border-bottom: 1px solid var(--glass-border); }
 .admin-table th { background: rgba(0,0,0,0.2); font-weight: 600; color: var(--text-muted); }
 .admin-table tbody tr:hover { background: rgba(255,255,255,0.02); }
-.admin-table img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #fff; }
-.action-btns { display: flex; gap: 0.5rem; }
+.admin-table img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
 
 /* Forms */
 .form-card { padding: 2rem; border-radius: 16px; max-width: 600px; }
@@ -517,11 +519,10 @@ video { width: 100%; height: 100%; max-height: 100vh; }
 .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); }
 .form-group input, .form-group select, .form-group textarea {
     width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
-    color: var(--text-color); padding: 0.8rem 1rem; border-radius: 8px; outline: none; transition: border-color 0.2s;
+    color: var(--text-color); padding: 0.8rem 1rem; border-radius: 8px; outline: none;
 }
-.form-group input:focus, .form-group select:focus { border-color: var(--gold); }
 
-/* Admin Slides Grid */
+/* Slider Admin */
 .slider-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
 .admin-slide-card { border-radius: 16px; overflow: hidden; position: relative; height: 150px; }
 .admin-slide-card img { width: 100%; height: 100%; object-fit: cover; }
@@ -529,11 +530,9 @@ video { width: 100%; height: 100%; max-height: 100vh; }
 
 /* Modals */
 .modal {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.8);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 2000; transition: opacity 0.3s;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
+    z-index: 2000;
 }
 .modal-content { width: 100%; max-width: 500px; border-radius: 16px; overflow: hidden; }
 .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
@@ -541,7 +540,7 @@ video { width: 100%; height: 100%; max-height: 100vh; }
 .modal-footer { padding: 1.5rem; border-top: 1px solid var(--glass-border); display: flex; justify-content: flex-end; gap: 1rem; }
 
 /* =========================================
-   4. FINAL RESPONSIVE FIXES (Critical)
+   4. RESPONSIVE FIXES
    ========================================= */
 @media (max-width: 1024px) {
     .admin-sidebar { width: 80px; min-width: 80px; }
@@ -550,13 +549,10 @@ video { width: 100%; height: 100%; max-height: 100vh; }
 }
 
 @media (max-width: 768px) {
-    /* Main App Mobile View */
     .nav-center { display: none; }
     .channels-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem; }
-    .channel-card { padding: 0.8rem; }
     .channel-logo { width: 70px; height: 70px; }
     
-    /* Admin Panel Mobile View */
     .admin-layout { flex-direction: column; }
     .admin-sidebar {
         width: 100%; height: auto; position: fixed; bottom: 0;
@@ -565,10 +561,7 @@ video { width: 100%; height: 100%; max-height: 100vh; }
     .sidebar-header { display: none; }
     .sidebar-nav { flex-direction: row; padding: 0.5rem; overflow-x: auto; }
     .nav-link { padding: 0.5rem 1rem; flex-direction: column; gap: 0.2rem; font-size: 0.7rem; white-space: nowrap; }
-    .nav-link i { font-size: 1.2rem; }
     .admin-main { margin-bottom: 80px; }
     .admin-content { padding: 1rem; }
     .stats-grid { grid-template-columns: 1fr; }
-    .admin-header { padding: 0 1rem; }
-    }
-    
+}
