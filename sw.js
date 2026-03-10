@@ -3,12 +3,11 @@ const CACHE_NAME = 'iptv-v1-final';
 
 // لیستێکی زۆر ورد - تەنها ئەو فایلانەی لە تەنیشت index.html هەن
 const FILES_TO_CACHE = [
-  './',
-  './index.html',
-  './style.css',
-  './app.js',
-  './manifest.json',
-  './icon-192x192.png'
+  'index.html',
+  'style.css',
+  'app.js',
+  'manifest.json',
+  'icon-192x192.png'
 ];
 
 // ١. قۆناغی Install: داگرتنی فایلەکان بۆ ناو مۆبایلەکە
