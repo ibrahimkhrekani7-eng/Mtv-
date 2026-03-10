@@ -23,6 +23,8 @@ let state = {
 };
 
 let hls = null;
+let slideIndex = 0;
+let slideInterval;
 
 // --- Initialize ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -34,8 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Firebase Listeners
     onSnapshot(collection(db, 'channels'), (snapshot) => {
         state.channels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const activeTab = document.querySelector('.nav-item.active')?.getAttribute('data-tab');
-        renderChannels(activeTab === 'favorites');
+        renderChannels(document.querySelector('.nav-item.active')?.getAttribute('data-tab') === 'favorites');
     });
 
     onSnapshot(collection(db, 'categories'), (snapshot) => {
@@ -59,6 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAds();
         }
     });
+
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW error", err));
+    }
 });
 
 // --- Theme & Language ---
@@ -83,12 +89,17 @@ function applyTranslations() {
     });
 }
 
-// --- Render Functions ---
+// --- Slider Logic (Auto-Moving) ---
 function renderSlider() {
     const slider = document.getElementById('slider');
-    if (!slider) return;
+    if (!slider || state.slides.length === 0) return;
+    
+    clearInterval(slideInterval);
     slider.innerHTML = '';
-    state.slides.forEach(slide => {
+    slideIndex = 0;
+    slider.style.transform = `translateX(0)`;
+
+    state.slides.forEach((slide) => {
         const div = document.createElement('div');
         div.className = 'slide';
         div.style.backgroundImage = `url(${slide.imageUrl})`;
@@ -96,12 +107,29 @@ function renderSlider() {
         if (slide.link) div.onclick = () => window.open(slide.link, '_blank');
         slider.appendChild(div);
     });
+
+    if (state.slides.length > 1) {
+        startAutoSlide();
+    }
 }
 
+function startAutoSlide() {
+    slideInterval = setInterval(() => {
+        const slider = document.getElementById('slider');
+        const slidesCount = state.slides.length;
+        slideIndex = (slideIndex + 1) % slidesCount;
+        
+        // پشتیبانی لە RTL و LTR بۆ جوڵەی سڵایدەرەکە
+        const direction = document.body.getAttribute('dir') === 'rtl' ? '' : '-';
+        slider.style.transform = `translateX(${direction}${slideIndex * 100}%)`;
+    }, 5000);
+}
+
+// --- Categories & Channels ---
 function renderCategories() {
     const container = document.getElementById('categoriesList');
     if (!container) return;
-    container.innerHTML = `<button class="category-btn ${state.currentCategory === 'all' ? 'active' : ''}" data-category="all">${translations[state.language].allChannels}</button>`;
+    container.innerHTML = `<button class="category-btn ${state.currentCategory === 'all' ? 'active' : ''}" id="btn-all">${translations[state.language].allChannels}</button>`;
     
     state.categories.forEach(cat => {
         const btn = document.createElement('button');
@@ -116,8 +144,7 @@ function renderCategories() {
     });
     lucide.createIcons();
     
-    // کاتێک کاتێگۆری دەگۆڕدرێت دەمانگەڕێنێتەوە بۆ Home
-    container.querySelector('[data-category="all"]').onclick = () => {
+    document.getElementById('btn-all').onclick = () => {
         state.currentCategory = 'all';
         renderCategories();
         renderChannels(false);
@@ -141,9 +168,9 @@ function renderChannels(filterFavs = false) {
         card.className = 'channel-card glass';
         card.innerHTML = `
             <button class="fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${channel.id}')">
-                <i data-lucide="heart" style="${isFav ? 'fill: orange;' : ''}"></i>
+                <i data-lucide="heart" style="${isFav ? 'fill: orange; color: orange;' : ''}"></i>
             </button>
-            <img src="${channel.logoUrl}" class="channel-logo">
+            <img src="${channel.logoUrl}" class="channel-logo" onerror="this.src='https://via.placeholder.com/150?text=TV'">
             <div class="channel-name">${channel.name}</div>
         `;
         card.onclick = () => openPlayer(channel);
@@ -157,6 +184,10 @@ function renderAds() {
     if (state.ads.active && state.ads.bannerUrl) {
         adSection.style.display = 'flex';
         adSection.style.backgroundImage = `url(${state.ads.bannerUrl})`;
+        adSection.style.height = "90px";
+        adSection.style.backgroundSize = "contain";
+        adSection.style.backgroundRepeat = "no-repeat";
+        adSection.style.backgroundPosition = "center";
         adSection.onclick = () => window.open(state.ads.link, '_blank');
     } else {
         adSection.style.display = 'none';
@@ -178,31 +209,42 @@ window.toggleFavorite = function(id) {
         state.favorites.push(id);
     }
     localStorage.setItem('iptv_favs', JSON.stringify(state.favorites));
-    const activeTab = document.querySelector('.nav-item.active')?.getAttribute('data-tab');
-    renderChannels(activeTab === 'favorites');
+    renderChannels(document.querySelector('.nav-item.active')?.getAttribute('data-tab') === 'favorites');
 };
 
-// --- Player Logic ---
+// --- Player Logic (Full Responsive) ---
 function openPlayer(channel) {
+    if (!channel) return;
     const modal = document.getElementById('tvModeModal');
     const video = document.getElementById('videoPlayer');
     document.getElementById('playerTitle').textContent = channel.name;
-    modal.classList.remove('hidden');
     
+    modal.classList.remove('hidden');
+    modal.style.display = "flex";
+    
+    // سێتکردنی ڤیدیۆ بۆ هەموو شاشەکە
+    video.style.width = "100%";
+    video.style.height = "100%";
+    video.style.objectFit = "contain";
+
     if (Hls.isSupported()) {
         if (hls) hls.destroy();
         hls = new Hls();
         hls.loadSource(channel.streamUrl);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    } else {
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().catch(() => console.log("User interaction required"));
+        });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = channel.streamUrl;
         video.play();
     }
 }
 
 function closePlayer() {
-    document.getElementById('tvModeModal').classList.add('hidden');
+    const modal = document.getElementById('tvModeModal');
+    modal.classList.add('hidden');
+    modal.style.display = "none";
     const video = document.getElementById('videoPlayer');
     video.pause();
     if (hls) hls.destroy();
@@ -212,8 +254,7 @@ function closePlayer() {
 function setupEventListeners() {
     document.getElementById('searchInput').oninput = (e) => {
         state.searchQuery = e.target.value;
-        const activeTab = document.querySelector('.nav-item.active')?.getAttribute('data-tab');
-        renderChannels(activeTab === 'favorites');
+        renderChannels(document.querySelector('.nav-item.active')?.getAttribute('data-tab') === 'favorites');
     };
 
     document.getElementById('themeToggle').onclick = () => {
@@ -226,10 +267,11 @@ function setupEventListeners() {
         state.language = e.target.value;
         localStorage.setItem('iptv_lang', state.language);
         initLanguage();
-        renderCategories(); // بۆ نوێکردنەوەی زمانی دوگمەی "All"
+        renderCategories();
     };
 
     document.getElementById('settingsBtn').onclick = () => document.getElementById('settingsPanel').classList.toggle('hidden');
+    
     document.getElementById('notificationBtn').onclick = () => {
         const panel = document.getElementById('notificationsPanel');
         panel.classList.toggle('hidden');
@@ -242,18 +284,23 @@ function setupEventListeners() {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.onclick = () => {
             const tab = item.getAttribute('data-tab');
-            if (tab === 'tvmode') return openPlayer(state.channels[0]);
-            
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             item.classList.add('active');
-            renderChannels(tab === 'favorites');
+            
+            if (tab === 'tvmode') {
+                if (state.channels.length > 0) openPlayer(state.channels[0]);
+            } else {
+                renderChannels(tab === 'favorites');
+            }
         };
     });
 
     document.getElementById('closePlayerBtn').onclick = closePlayer;
+    
     document.getElementById('fullscreenBtn').onclick = () => {
         const video = document.getElementById('videoPlayer');
         if (video.requestFullscreen) video.requestFullscreen();
+        else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+        else if (video.msRequestFullscreen) video.msRequestFullscreen();
     };
-            }
-
+}
