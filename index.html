@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IPTV Master</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    
+    <!-- HLS.js -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest" defer></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="dark">
+
+    <!-- Top Navigation -->
+    <nav class="navbar glass">
+        <div class="nav-left">
+            <i data-lucide="tv" class="app-icon"></i>
+        </div>
+        
+        <div class="nav-center">
+            <div class="search-bar">
+                <i data-lucide="search"></i>
+                <input type="text" id="searchInput" placeholder="Search channels..." data-i18n="searchPlaceholder">
+            </div>
+        </div>
+        
+        <div class="nav-right">
+            <div class="notification-bell" id="notificationBtn">
+                <i data-lucide="bell"></i>
+                <span class="badge" id="notifBadge" style="display: none;">0</span>
+            </div>
+            <div class="settings-menu-btn" id="settingsBtn">
+                <i data-lucide="settings"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="settings-panel glass hidden">
+        <h3 class="gold-text mb-2" data-i18n="settings">Settings</h3>
+        
+        <div class="setting-group">
+            <label data-i18n="language">Language</label>
+            <select id="languageSelect">
+                <option value="en">English</option>
+                <option value="ar">العربية</option>
+                <option value="ku">Kurdish</option>
+                <option value="fa">فارسی</option>
+                <option value="tr">Türkçe</option>
+            </select>
+        </div>
+        
+        <div class="setting-group">
+            <label data-i18n="theme">Theme</label>
+            <button id="themeToggle" class="btn-outline w-full flex justify-between align-center">
+                <span data-i18n="theme">Toggle Theme</span>
+                <i data-lucide="moon"></i>
+            </button>
+        </div>
+        
+        <div class="setting-group">
+            <label data-i18n="adminInfo">Developer Info</label>
+            <div class="dev-info">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <div class="setting-group" style="margin-top: 2rem;">
+            <a href="admin.html" class="btn-gold w-full" style="justify-content: center; text-decoration: none;">
+                <i data-lucide="shield"></i> <span data-i18n="adminPanel">Admin Panel</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Notifications Panel -->
+    <div id="notificationsPanel" class="notifications-panel glass hidden">
+        <h3 class="gold-text" data-i18n="notifications">Notifications</h3>
+        <div id="notificationsList">
+            <!-- Injected via JS -->
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="app" class="main-content">
+        
+        <!-- Slider -->
+        <div class="slider-container glass">
+            <div class="slider" id="slider">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="categories-wrapper">
+            <div class="categories-scroll" id="categoriesList">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- Channels Grid -->
+        <div class="channels-grid" id="channelsGrid">
+            <!-- Injected via JS -->
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" data-tab="home">
+            <i data-lucide="home"></i>
+            <span data-i18n="home">Home</span>
+        </div>
+        <div class="nav-item" data-tab="favorites">
+            <i data-lucide="heart"></i>
+            <span data-i18n="favorites">Favorites</span>
+        </div>
+        <div class="nav-item" data-tab="tvmode">
+            <i data-lucide="monitor-play"></i>
+            <span data-i18n="tvMode">TV Mode</span>
+        </div>
+    </nav>
+
+    <!-- TV Mode Modal -->
+    <div id="tvModeModal" class="tv-mode-modal hidden">
+        <div class="tv-mode-container" id="tvModeContainer">
+            <div class="tv-video-wrapper">
+                <video id="videoPlayer" controls></video>
+                <button id="closePlayerBtn" class="icon-btn" style="position: absolute; top: 20px; left: 20px; z-index: 60; background: rgba(0,0,0,0.5);"><i data-lucide="arrow-left"></i></button>
+                <div class="tv-channels-overlay" id="tvChannelsOverlay">
+                    <!-- Channels injected here -->
+                </div>
+            </div>
+            <div class="tv-categories-sidebar" id="tvCategoriesSidebar">
+                <h3 style="margin-bottom: 1rem; color: var(--gold);">Categories</h3>
+                <div id="tvCategoriesList" style="display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; flex: 1;">
+                    <!-- Categories injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Logic -->
+    <script type="module" src="app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPTV Master - Admin</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="admin-body">
+
+    <!-- Login Section -->
+    <div id="loginSection" class="modal" style="background: var(--bg-color);">
+        <div class="modal-content glass" style="padding: 2rem;">
+            <h2 class="gold-text mb-2 text-center">Admin Login</h2>
+            <div id="loginError" class="text-danger mb-2 hidden text-center" style="color: var(--danger);"></div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" class="input" placeholder="admin@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" class="input" placeholder="••••••••">
+            </div>
+            <button id="loginBtn" class="btn-gold w-full" style="justify-content: center;">Login</button>
+        </div>
+    </div>
+
+    <!-- Admin Layout -->
+    <div id="adminLayout" class="admin-layout hidden">
+        
+        <!-- Sidebar -->
+        <aside class="admin-sidebar glass" id="adminSidebar">
+            <div class="sidebar-header">
+                <h2 class="gold-text"><i data-lucide="shield"></i> Admin</h2>
+                <button class="icon-btn close-sidebar-btn" id="closeSidebarBtn"><i data-lucide="x"></i></button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-link active" data-target="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+                <a href="#" class="nav-link" data-target="channels"><i data-lucide="tv"></i> Channels</a>
+                <a href="#" class="nav-link" data-target="categories"><i data-lucide="folder"></i> Categories</a>
+                <a href="#" class="nav-link" data-target="slider"><i data-lucide="image"></i> Slider</a>
+                <a href="#" class="nav-link" data-target="notifications"><i data-lucide="bell"></i> Notifications</a>
+                <a href="#" class="nav-link" data-target="ads"><i data-lucide="dollar-sign"></i> Ads</a>
+                <a href="index.html" class="nav-link"><i data-lucide="external-link"></i> View App</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <header class="admin-header glass">
+                <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn"><i data-lucide="menu"></i></button>
+                <h2 class="gold-text">IPTV Master Dashboard</h2>
+            </header>
+
+            <div class="admin-content">
+                
+                <!-- Dashboard View -->
+                <div id="dashboardView" class="admin-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card glass">
+                            <div class="stat-icon"><i data-lucide="tv"></i></div>
+                            <div class="stat-info">
+                                <h3>Total Channels</h3>
+                                <p id="statTotalChannels" class="gold-text">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass">
+                            <div class="stat-icon"><i data-lucide="folder"></i></div>
+                            <div class="stat-info">
+                                <h3>Categories</h3>
+                                <p id="statTotalCategories" class="gold-text">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass">
+                            <div class="stat-icon"><i data-lucide="bell"></i></div>
+                            <div class="stat-info">
+                                <h3>Notifications</h3>
+                                <p id="statTotalNotifs" class="gold-text">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Channels View -->
+                <div id="channelsView" class="admin-section">
+                    <div class="section-header">
+                        <h2>Manage Channels</h2>
+                        <button id="addChannelBtn" class="btn-gold"><i data-lucide="plus"></i> Add Channel</button>
+                    </div>
+                    <div class="table-responsive glass">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Logo</th>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Stream URL</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="channelsTableBody">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Categories View -->
+                <div id="categoriesView" class="admin-section">
+                    <div class="section-header">
+                        <h2>Manage Categories</h2>
+                        <button id="addCategoryBtn" class="btn-gold"><i data-lucide="plus"></i> Add Category</button>
+                    </div>
+                    <div class="table-responsive glass">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Icon</th>
+                                    <th>Name</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesTableBody">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Slider View -->
+                <div id="sliderView" class="admin-section">
+                    <div class="section-header">
+                        <h2>Manage Slider</h2>
+                        <button id="addSlideBtn" class="btn-gold"><i data-lucide="plus"></i> Add Slide</button>
+                    </div>
+                    <div class="slider-grid" id="adminSliderGrid">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Notifications View -->
+                <div id="notificationsView" class="admin-section">
+                    <div class="section-header">
+                        <h2>Push Notifications</h2>
+                    </div>
+                    <div class="form-card glass mb-2">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" id="notifTitle" class="input" placeholder="Notification Title">
+                        </div>
+                        <div class="form-group">
+                            <label>Message</label>
+                            <textarea id="notifMessage" class="input" rows="3" placeholder="Notification Message"></textarea>
+                        </div>
+                        <button id="sendNotifBtn" class="btn-gold w-full"><i data-lucide="send"></i> Send Notification</button>
+                    </div>
+                    <h3 class="mb-2">Recent Notifications</h3>
+                    <div id="adminNotifsList" class="glass" style="border-radius: 16px; overflow: hidden;">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Ads View -->
+                <div id="adsView" class="admin-section">
+                    <div class="section-header">
+                        <h2>Ads Management</h2>
+                        <button id="addAdBtn" class="btn-gold"><i data-lucide="plus"></i> Add Ad</button>
+                    </div>
+                    <div class="table-responsive glass">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Content</th>
+                                    <th>Link</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adsTableBody">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Channel Modal -->
+    <div id="channelModal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3 id="channelModalTitle">Add Channel</h3>
+                <button class="icon-btn close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="channelId">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="channelName" class="input">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="channelCategory" class="input"></select>
+                </div>
+                <div class="form-group">
+                    <label>Logo URL</label>
+                    <input type="text" id="channelLogoUrl" class="input">
+                </div>
+                <div class="form-group">
+                    <label>Stream URL (.m3u8)</label>
+                    <input type="text" id="channelStreamUrl" class="input">
+                </div>
+                <div class="form-group">
+                    <label>Is Favorite (Default)</label>
+                    <select id="channelIsFavorite" class="input">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline close-modal">Cancel</button>
+                <button id="saveChannelBtn" class="btn-gold">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="categoryModal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3 id="categoryModalTitle">Add Category</h3>
+                <button class="icon-btn close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="categoryId">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="categoryName" class="input">
+                </div>
+                <div class="form-group">
+                    <label>Lucide Icon Name (e.g., tv, film, music)</label>
+                    <input type="text" id="categoryIcon" class="input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline close-modal">Cancel</button>
+                <button id="saveCategoryBtn" class="btn-gold">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide Modal -->
+    <div id="slideModal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3 id="slideModalTitle">Add Slide</h3>
+                <button class="icon-btn close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="slideId">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="slideTitle" class="input">
+                </div>
+                <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="text" id="slideImageUrl" class="input">
+                </div>
+                <div class="form-group">
+                    <label>Link (Optional)</label>
+                    <input type="text" id="slideLink" class="input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline close-modal">Cancel</button>
+                <button id="saveSlideBtn" class="btn-gold">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ad Modal -->
+    <div id="adModal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3 id="adModalTitle">Add Ad</h3>
+                <button class="icon-btn close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="adId">
+                <div class="form-group">
+                    <label>Image URL or HTML Script</label>
+                    <textarea id="adContent" class="input" rows="4" placeholder="Enter image URL or Ad script..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Link URL (if Image)</label>
+                    <input type="text" id="adLink" class="input" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="adActive" class="input">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline close-modal">Cancel</button>
+                <button id="saveAdBtn" class="btn-gold">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Logic -->
+    <script type="module" src="admin.js" defer></script>
+</body>
+</html>
