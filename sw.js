@@ -2,14 +2,14 @@ const CACHE_NAME = 'iptv-v1-final-fix';
 
 // لێرەدا خاڵ (.) پێش ناوەکان زۆر گرنگە بۆ گیتھەب
 const urlsToCache = [
-  './',
-  './index.html',
-  './admin.html',
-  './style.css',
-  './app.js',
-  './firebase-config.js',
-  './admin.js',
-  './manifest.json'
+
+  "index.html",
+  "admin.html",
+  "style.css",
+  "app.js",
+  "firebase-config.js",
+  "admin.js",
+  "manifest.json"
 ];
 
 self.addEventListener('install', event => {
