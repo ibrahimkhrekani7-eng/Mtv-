@@ -2,7 +2,7 @@
   "name": "IPTV Live Channels",
   "short_name": "IPTV",
   "description": "Professional IPTV & Live Channels App",
-  "start_url": "/",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#D4AF37",
