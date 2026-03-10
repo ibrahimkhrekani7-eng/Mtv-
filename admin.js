@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await signInWithEmailAndPassword(auth, email, pass);
             } catch (error) {
                 const errEl = document.getElementById('loginError');
-                errEl.textContent = error.message;
+                errEl.textContent = "ئیمێڵ یان پاسوورد هەڵەیە!";
                 errEl.classList.remove('hidden');
             }
         });
@@ -45,9 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if(sidebarNav) {
         const logoutBtn = document.createElement('a');
         logoutBtn.href = "#";
-        logoutBtn.className = "nav-link";
+        logoutBtn.className = "nav-link logout-link";
+        logoutBtn.style.marginTop = "auto";
         logoutBtn.innerHTML = '<i data-lucide="log-out"></i> Logout';
-        logoutBtn.addEventListener('click', () => signOut(auth));
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            signOut(auth);
+        });
         sidebarNav.appendChild(logoutBtn);
     }
 
@@ -66,15 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminSidebar.classList.remove('open');
             });
         }
-        
-        // Close sidebar when clicking a link on mobile
-        document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => {
-            link.addEventListener('click', () => {
-                if(window.innerWidth <= 768) {
-                    adminSidebar.classList.remove('open');
-                }
-            });
-        });
     }
 });
 
@@ -82,13 +77,11 @@ function initAdmin() {
     setupAdminNav();
     setupAdminForms();
     
-    // Listeners
+    // Listeners for Data
     onSnapshot(collection(db, 'channels'), (snapshot) => {
         adminState.channels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderAdminChannels();
         updateDashboardStats();
-    }, (error) => {
-        console.error("Error fetching admin channels:", error);
     });
 
     onSnapshot(collection(db, 'categories'), (snapshot) => {
@@ -96,30 +89,22 @@ function initAdmin() {
         renderAdminCategories();
         updateDashboardStats();
         updateCategorySelects();
-    }, (error) => {
-        console.error("Error fetching admin categories:", error);
     });
 
     onSnapshot(collection(db, 'slider'), (snapshot) => {
         adminState.slides = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderAdminSlides();
-    }, (error) => {
-        console.error("Error fetching admin slider:", error);
     });
 
     onSnapshot(collection(db, 'notifications'), (snapshot) => {
         adminState.notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp);
         renderAdminNotifs();
         updateDashboardStats();
-    }, (error) => {
-        console.error("Error fetching admin notifications:", error);
     });
 
     onSnapshot(collection(db, 'ads'), (snapshot) => {
         adminState.ads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderAdminAds();
-    }, (error) => {
-        console.error("Error fetching admin ads:", error);
     });
 }
 
@@ -128,15 +113,16 @@ function setupAdminNav() {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const target = e.currentTarget.getAttribute('data-target');
-            
-            // Update active link
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             e.currentTarget.classList.add('active');
             
-            // Update active section
             document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
             const targetEl = document.getElementById(`${target}View`);
             if(targetEl) targetEl.classList.add('active');
+            
+            if(window.innerWidth <= 768) {
+                document.getElementById('adminSidebar').classList.remove('open');
+            }
         });
     });
 }
@@ -163,12 +149,12 @@ function updateCategorySelects() {
     });
 }
 
-// Categories Management
+// --- RENDERING FUNCTIONS ---
+
 function renderAdminCategories() {
     const tbody = document.getElementById('categoriesTableBody');
     if(!tbody) return;
     tbody.innerHTML = '';
-    
     adminState.categories.forEach(cat => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -176,332 +162,287 @@ function renderAdminCategories() {
             <td>${cat.name}</td>
             <td>
                 <div class="action-btns">
-                    <button class="icon-btn edit-category-btn" data-id="${cat.id}"><i data-lucide="edit"></i></button>
-                    <button class="icon-btn delete-category-btn" data-id="${cat.id}" style="color: var(--danger);"><i data-lucide="trash-2"></i></button>
+                    <button class="icon-btn edit-cat" onclick="editCategory('${cat.id}')"><i data-lucide="edit"></i></button>
+                    <button class="icon-btn delete-cat" onclick="deleteCategory('${cat.id}')" style="color:red;"><i data-lucide="trash-2"></i></button>
                 </div>
             </td>
         `;
         tbody.appendChild(tr);
     });
     lucide.createIcons();
-
-    document.querySelectorAll('.edit-category-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => editCategory(e.currentTarget.getAttribute('data-id')));
-    });
-    document.querySelectorAll('.delete-category-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => deleteCategory(e.currentTarget.getAttribute('data-id')));
-    });
 }
 
-// Channels Management
 function renderAdminChannels() {
     const tbody = document.getElementById('channelsTableBody');
     if(!tbody) return;
     tbody.innerHTML = '';
-    
     adminState.channels.forEach(channel => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><img src="${channel.logoUrl}" alt="logo"></td>
+            <td><img src="${channel.logoUrl}" style="width:30px; border-radius:4px;"></td>
             <td>${channel.name}</td>
-            <td style="text-transform: capitalize;">${channel.category}</td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${channel.streamUrl}</td>
+            <td>${channel.category}</td>
+            <td class="url-cell">${channel.streamUrl}</td>
             <td>
                 <div class="action-btns">
-                    <button class="icon-btn edit-channel-btn" data-id="${channel.id}"><i data-lucide="edit"></i></button>
-                    <button class="icon-btn delete-channel-btn" data-id="${channel.id}" style="color: var(--danger);"><i data-lucide="trash-2"></i></button>
+                    <button class="icon-btn" onclick="editChannel('${channel.id}')"><i data-lucide="edit"></i></button>
+                    <button class="icon-btn" onclick="deleteChannel('${channel.id}')" style="color:red;"><i data-lucide="trash-2"></i></button>
                 </div>
             </td>
         `;
         tbody.appendChild(tr);
     });
     lucide.createIcons();
-
-    document.querySelectorAll('.edit-channel-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => editChannel(e.currentTarget.getAttribute('data-id')));
-    });
-    document.querySelectorAll('.delete-channel-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => deleteChannel(e.currentTarget.getAttribute('data-id')));
-    });
-}
-
-function setupAdminForms() {
-    // Category Modal
-    const catModal = document.getElementById('categoryModal');
-    const addCategoryBtn = document.getElementById('addCategoryBtn');
-    if(addCategoryBtn) {
-        addCategoryBtn.addEventListener('click', () => {
-            document.getElementById('categoryId').value = '';
-            document.getElementById('categoryName').value = '';
-            document.getElementById('categoryIcon').value = '';
-            document.getElementById('categoryModalTitle').textContent = 'Add Category';
-            catModal.classList.remove('hidden');
-        });
-    }
-
-    const saveCategoryBtn = document.getElementById('saveCategoryBtn');
-    if(saveCategoryBtn) {
-        saveCategoryBtn.addEventListener('click', async () => {
-            const id = document.getElementById('categoryId').value;
-            const name = document.getElementById('categoryName').value;
-            const icon = document.getElementById('categoryIcon').value;
-
-            if (!name || !icon) {
-                alert('Please fill all fields');
-                return;
-            }
-
-            try {
-                if (id) {
-                    await setDoc(doc(db, 'categories', id), { name, icon });
-                } else {
-                    await addDoc(collection(db, 'categories'), { name, icon });
-                }
-                catModal.classList.add('hidden');
-            } catch (error) {
-                alert('Error saving category: ' + error.message);
-            }
-        });
-    }
-
-    // Channel Modal
-    const channelModal = document.getElementById('channelModal');
-    const addChannelBtn = document.getElementById('addChannelBtn');
-    if(addChannelBtn) {
-        addChannelBtn.addEventListener('click', () => {
-            if (adminState.categories.length === 0) {
-                alert('Please add a category first');
-                return;
-            }
-            document.getElementById('channelId').value = '';
-            document.getElementById('channelName').value = '';
-            document.getElementById('channelLogoUrl').value = '';
-            document.getElementById('channelStreamUrl').value = '';
-            document.getElementById('channelIsFavorite').value = 'false';
-            document.getElementById('channelModalTitle').textContent = 'Add Channel';
-            channelModal.classList.remove('hidden');
-        });
-    }
-
-    const saveChannelBtn = document.getElementById('saveChannelBtn');
-    if(saveChannelBtn) {
-        saveChannelBtn.addEventListener('click', async () => {
-            const id = document.getElementById('channelId').value;
-            const name = document.getElementById('channelName').value;
-            const category = document.getElementById('channelCategory').value;
-            const logoUrl = document.getElementById('channelLogoUrl').value;
-            const streamUrl = document.getElementById('channelStreamUrl').value;
-            const isFavorite = document.getElementById('channelIsFavorite').value === 'true';
-
-            if (!name || !logoUrl || !streamUrl) {
-                alert('Please fill all fields');
-                return;
-            }
-
-            try {
-                if (id) {
-                    await setDoc(doc(db, 'channels', id), { name, category, logoUrl, streamUrl, isFavorite });
-                } else {
-                    await addDoc(collection(db, 'channels'), { name, category, logoUrl, streamUrl, isFavorite });
-                }
-                channelModal.classList.add('hidden');
-            } catch (error) {
-                alert('Error saving channel: ' + error.message);
-            }
-        });
-    }
-
-    // Slide Modal
-    const slideModal = document.getElementById('slideModal');
-    const addSlideBtn = document.getElementById('addSlideBtn');
-    if(addSlideBtn) {
-        addSlideBtn.addEventListener('click', () => {
-            document.getElementById('slideId').value = '';
-            document.getElementById('slideTitle').value = '';
-            document.getElementById('slideImageUrl').value = '';
-            document.getElementById('slideLink').value = '';
-            document.getElementById('slideModalTitle').textContent = 'Add Slide';
-            slideModal.classList.remove('hidden');
-        });
-    }
-
-    const saveSlideBtn = document.getElementById('saveSlideBtn');
-    if(saveSlideBtn) {
-        saveSlideBtn.addEventListener('click', async () => {
-            const id = document.getElementById('slideId').value;
-            const title = document.getElementById('slideTitle').value;
-            const imageUrl = document.getElementById('slideImageUrl').value;
-            const link = document.getElementById('slideLink').value;
-
-            if (!title || !imageUrl) {
-                alert('Please fill title and image URL');
-                return;
-            }
-
-            try {
-                if (id) {
-                    await setDoc(doc(db, 'slider', id), { title, imageUrl, link });
-                } else {
-                    await addDoc(collection(db, 'slider'), { title, imageUrl, link });
-                }
-                slideModal.classList.add('hidden');
-            } catch (error) {
-                alert('Error saving slide: ' + error.message);
-            }
-        });
-    }
-
-    // Ads Modal
-    const adModal = document.getElementById('adModal');
-    const addAdBtn = document.getElementById('addAdBtn');
-    if(addAdBtn) {
-        addAdBtn.addEventListener('click', () => {
-            document.getElementById('adId').value = '';
-            document.getElementById('adContent').value = '';
-            document.getElementById('adLink').value = '';
-            document.getElementById('adActive').value = 'true';
-            document.getElementById('adModalTitle').textContent = 'Add Ad';
-            adModal.classList.remove('hidden');
-        });
-    }
-
-    const saveAdBtn = document.getElementById('saveAdBtn');
-    if(saveAdBtn) {
-        saveAdBtn.addEventListener('click', async () => {
-            const id = document.getElementById('adId').value;
-            const content = document.getElementById('adContent').value;
-            const link = document.getElementById('adLink').value;
-            const active = document.getElementById('adActive').value === 'true';
-
-            if (!content) {
-                alert('Please provide Ad content');
-                return;
-            }
-
-            try {
-                if (id) {
-                    await setDoc(doc(db, 'ads', id), { content, link, active });
-                } else {
-                    await addDoc(collection(db, 'ads'), { content, link, active });
-                }
-                adModal.classList.add('hidden');
-            } catch (error) {
-                alert('Error saving ad: ' + error.message);
-            }
-        });
-    }
-
-    // Close Modals
-    document.querySelectorAll('.close-modal').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.target.closest('.modal').classList.add('hidden');
-        });
-    });
-
-    // Notifications
-    const sendNotifBtn = document.getElementById('sendNotifBtn');
-    if(sendNotifBtn) {
-        sendNotifBtn.addEventListener('click', async () => {
-            const title = document.getElementById('notifTitle').value;
-            const message = document.getElementById('notifMessage').value;
-            
-            if (!title || !message) {
-                alert('Please fill title and message');
-                return;
-            }
-
-            try {
-                await addDoc(collection(db, 'notifications'), {
-                    title,
-                    message,
-                    timestamp: Date.now()
-                });
-                document.getElementById('notifTitle').value = '';
-                document.getElementById('notifMessage').value = '';
-                alert('Notification Sent!');
-            } catch (error) {
-                alert('Error sending notification: ' + error.message);
-            }
-        });
-    }
-}
-
-function editCategory(id) {
-    const cat = adminState.categories.find(c => c.id === id);
-    if (!cat) return;
-
-    document.getElementById('categoryId').value = cat.id;
-    document.getElementById('categoryName').value = cat.name;
-    document.getElementById('categoryIcon').value = cat.icon;
-    
-    document.getElementById('categoryModalTitle').textContent = 'Edit Category';
-    document.getElementById('categoryModal').classList.remove('hidden');
-}
-
-async function deleteCategory(id) {
-    if (confirm('Are you sure you want to delete this category?')) {
-        try {
-            await deleteDoc(doc(db, 'categories', id));
-        } catch (error) {
-            alert('Error deleting category: ' + error.message);
-        }
-    }
-}
-
-function editChannel(id) {
-    const channel = adminState.channels.find(c => c.id === id);
-    if (!channel) return;
-
-    document.getElementById('channelId').value = channel.id;
-    document.getElementById('channelName').value = channel.name;
-    document.getElementById('channelCategory').value = channel.category;
-    document.getElementById('channelLogoUrl').value = channel.logoUrl;
-    document.getElementById('channelStreamUrl').value = channel.streamUrl;
-    document.getElementById('channelIsFavorite').value = channel.isFavorite ? 'true' : 'false';
-    
-    document.getElementById('channelModalTitle').textContent = 'Edit Channel';
-    document.getElementById('channelModal').classList.remove('hidden');
-}
-
-async function deleteChannel(id) {
-    if (confirm('Are you sure you want to delete this channel?')) {
-        try {
-            await deleteDoc(doc(db, 'channels', id));
-        } catch (error) {
-            alert('Error deleting channel: ' + error.message);
-        }
-    }
 }
 
 function renderAdminSlides() {
     const grid = document.getElementById('adminSliderGrid');
     if(!grid) return;
     grid.innerHTML = '';
-    
     adminState.slides.forEach(slide => {
         const div = document.createElement('div');
         div.className = 'admin-slide-card glass';
+        div.style.position = 'relative';
         div.innerHTML = `
-            <img src="${slide.imageUrl}" alt="${slide.title}">
-            <div class="admin-slide-actions">
-                <button class="icon-btn edit-slide-btn" data-id="${slide.id}" style="background: rgba(0,0,0,0.5);"><i data-lucide="edit"></i></button>
-                <button class="icon-btn delete-slide-btn" data-id="${slide.id}" style="background: rgba(0,0,0,0.5); color: var(--danger);"><i data-lucide="trash-2"></i></button>
-            </div>
-            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 0.5rem; color: white;">
-                ${slide.title}
+            <img src="${slide.imageUrl}" style="width:100%; height:100px; object-fit:cover; border-radius:8px;">
+            <div style="padding:5px; font-size:12px;">${slide.title}</div>
+            <div class="action-btns" style="position:absolute; top:5px; right:5px;">
+                <button class="icon-btn" onclick="editSlide('${slide.id}')" style="background:rgba(0,0,0,0.5);"><i data-lucide="edit"></i></button>
+                <button class="icon-btn" onclick="deleteSlide('${slide.id}')" style="background:rgba(0,0,0,0.5); color:red;"><i data-lucide="trash-2"></i></button>
             </div>
         `;
         grid.appendChild(div);
     });
     lucide.createIcons();
+}
 
-    document.querySelectorAll('.edit-slide-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => editSlide(e.currentTarget.getAttribute('data-id')));
+function renderAdminAds() {
+    const container = document.getElementById('adminAdsList');
+    if(!container) return;
+    container.innerHTML = '';
+    adminState.ads.forEach(ad => {
+        const div = document.createElement('div');
+        div.className = 'glass-card';
+        div.style.padding = '10px';
+        div.style.marginBottom = '10px';
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <strong>Ad Link:</strong> ${ad.link || 'No Link'}<br>
+                    <strong>Status:</strong> ${ad.active ? 'Active' : 'Inactive'}
+                </div>
+                <div class="action-btns">
+                    <button class="icon-btn" onclick="editAd('${ad.id}')"><i data-lucide="edit"></i></button>
+                    <button class="icon-btn" onclick="deleteAd('${ad.id}')" style="color:red;"><i data-lucide="trash-2"></i></button>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
     });
-    document.querySelectorAll('.delete-slide-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => deleteSlide(e.currentTarget.getAttribute('data-id')));
+    lucide.createIcons();
+}
+
+function renderAdminNotifs() {
+    const container = document.getElementById('adminNotifsList');
+    if(!container) return;
+    container.innerHTML = adminState.notifications.map(n => `
+        <div class="glass-card" style="padding:10px; margin-bottom:10px; position:relative;">
+            <strong>${n.title}</strong>
+            <p style="font-size:13px; color:#ccc;">${n.message}</p>
+            <button onclick="deleteNotif('${n.id}')" style="position:absolute; right:10px; top:10px; background:none; border:none; color:red; cursor:pointer;"><i data-lucide="trash-2"></i></button>
+        </div>
+    `).join('');
+    lucide.createIcons();
+}
+
+// --- FORMS & MODALS ---
+
+function setupAdminForms() {
+    // Category Modal
+    document.getElementById('addCategoryBtn')?.addEventListener('click', () => {
+        resetForm('category');
+        document.getElementById('categoryModal').classList.remove('hidden');
+    });
+
+    document.getElementById('saveCategoryBtn')?.addEventListener('click', async () => {
+        const id = document.getElementById('categoryId').value;
+        const name = document.getElementById('categoryName').value;
+        const icon = document.getElementById('categoryIcon').value;
+        if (!name || !icon) return alert('Please fill all fields');
+        
+        try {
+            if (id) await setDoc(doc(db, 'categories', id), { name, icon });
+            else await addDoc(collection(db, 'categories'), { name, icon });
+            document.getElementById('categoryModal').classList.add('hidden');
+        } catch (e) { alert(e.message); }
+    });
+
+    // Channel Modal
+    document.getElementById('addChannelBtn')?.addEventListener('click', () => {
+        if (adminState.categories.length === 0) return alert('Add category first');
+        resetForm('channel');
+        document.getElementById('channelModal').classList.remove('hidden');
+    });
+
+    document.getElementById('saveChannelBtn')?.addEventListener('click', async () => {
+        const id = document.getElementById('channelId').value;
+        const data = {
+            name: document.getElementById('channelName').value,
+            category: document.getElementById('channelCategory').value,
+            logoUrl: document.getElementById('channelLogoUrl').value,
+            streamUrl: document.getElementById('channelStreamUrl').value,
+            isFavorite: document.getElementById('channelIsFavorite').value === 'true'
+        };
+        if (!data.name || !data.logoUrl || !data.streamUrl) return alert('Fill all fields');
+
+        try {
+            if (id) await setDoc(doc(db, 'channels', id), data);
+            else await addDoc(collection(db, 'channels'), data);
+            document.getElementById('channelModal').classList.add('hidden');
+        } catch (e) { alert(e.message); }
+    });
+
+    // Slider Modal
+    document.getElementById('addSlideBtn')?.addEventListener('click', () => {
+        resetForm('slide');
+        document.getElementById('slideModal').classList.remove('hidden');
+    });
+
+    document.getElementById('saveSlideBtn')?.addEventListener('click', async () => {
+        const id = document.getElementById('slideId').value;
+        const data = {
+            title: document.getElementById('slideTitle').value,
+            imageUrl: document.getElementById('slideImageUrl').value,
+            link: document.getElementById('slideLink').value
+        };
+        try {
+            if (id) await setDoc(doc(db, 'slider', id), data);
+            else await addDoc(collection(db, 'slider'), data);
+            document.getElementById('slideModal').classList.add('hidden');
+        } catch (e) { alert(e.message); }
+    });
+
+    // Ads Modal
+    document.getElementById('addAdBtn')?.addEventListener('click', () => {
+        resetForm('ad');
+        document.getElementById('adModal').classList.remove('hidden');
+    });
+
+    document.getElementById('saveAdBtn')?.addEventListener('click', async () => {
+        const id = document.getElementById('adId').value;
+        const data = {
+            bannerUrl: document.getElementById('adContent').value, // Used 'adContent' field for Banner URL
+            link: document.getElementById('adLink').value,
+            active: document.getElementById('adActive').value === 'true'
+        };
+        try {
+            if (id) await setDoc(doc(db, 'ads', id), data);
+            else await addDoc(collection(db, 'ads'), data);
+            document.getElementById('adModal').classList.add('hidden');
+        } catch (e) { alert(e.message); }
+    });
+
+    // Notification Send
+    document.getElementById('sendNotifBtn')?.addEventListener('click', async () => {
+        const title = document.getElementById('notifTitle').value;
+        const message = document.getElementById('notifMessage').value;
+        if (!title || !message) return alert('Fill fields');
+        try {
+            await addDoc(collection(db, 'notifications'), { title, message, timestamp: Date.now() });
+            document.getElementById('notifTitle').value = '';
+            document.getElementById('notifMessage').value = '';
+            alert('Notification Sent!');
+        } catch (e) { alert(e.message); }
+    });
+
+    // Close Modals logic
+    document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.onclick = () => btn.closest('.modal').classList.add('hidden');
     });
 }
 
-function editSlide(id) {
-    const slide = adminState
+// --- HELPER ACTIONS (GLOBAL WINDOW FOR HTML ONCLICK) ---
+
+window.editCategory = (id) => {
+    const cat = adminState.categories.find(c => c.id === id);
+    if (!cat) return;
+    document.getElementById('categoryId').value = cat.id;
+    document.getElementById('categoryName').value = cat.name;
+    document.getElementById('categoryIcon').value = cat.icon;
+    document.getElementById('categoryModal').classList.remove('hidden');
+};
+
+window.deleteCategory = async (id) => {
+    if (confirm('Delete Category?')) await deleteDoc(doc(db, 'categories', id));
+};
+
+window.editChannel = (id) => {
+    const ch = adminState.channels.find(c => c.id === id);
+    if (!ch) return;
+    document.getElementById('channelId').value = ch.id;
+    document.getElementById('channelName').value = ch.name;
+    document.getElementById('channelCategory').value = ch.category;
+    document.getElementById('channelLogoUrl').value = ch.logoUrl;
+    document.getElementById('channelStreamUrl').value = ch.streamUrl;
+    document.getElementById('channelIsFavorite').value = ch.isFavorite ? 'true' : 'false';
+    document.getElementById('channelModal').classList.remove('hidden');
+};
+
+window.deleteChannel = async (id) => {
+    if (confirm('Delete Channel?')) await deleteDoc(doc(db, 'channels', id));
+};
+
+window.editSlide = (id) => {
+    const s = adminState.slides.find(sl => sl.id === id);
+    if (!s) return;
+    document.getElementById('slideId').value = s.id;
+    document.getElementById('slideTitle').value = s.title;
+    document.getElementById('slideImageUrl').value = s.imageUrl;
+    document.getElementById('slideLink').value = s.link;
+    document.getElementById('slideModal').classList.remove('hidden');
+};
+
+window.deleteSlide = async (id) => {
+    if (confirm('Delete Slide?')) await deleteDoc(doc(db, 'slider', id));
+};
+
+window.editAd = (id) => {
+    const ad = adminState.ads.find(a => a.id === id);
+    if (!ad) return;
+    document.getElementById('adId').value = ad.id;
+    document.getElementById('adContent').value = ad.bannerUrl || '';
+    document.getElementById('adLink').value = ad.link;
+    document.getElementById('adActive').value = ad.active ? 'true' : 'false';
+    document.getElementById('adModal').classList.remove('hidden');
+};
+
+window.deleteAd = async (id) => {
+    if (confirm('Delete Ad?')) await deleteDoc(doc(db, 'ads', id));
+};
+
+window.deleteNotif = async (id) => {
+    await deleteDoc(doc(db, 'notifications', id));
+};
+
+function resetForm(type) {
+    if (type === 'category') {
+        document.getElementById('categoryId').value = '';
+        document.getElementById('categoryName').value = '';
+        document.getElementById('categoryIcon').value = '';
+    } else if (type === 'channel') {
+        document.getElementById('channelId').value = '';
+        document.getElementById('channelName').value = '';
+        document.getElementById('channelLogoUrl').value = '';
+        document.getElementById('channelStreamUrl').value = '';
+    } else if (type === 'slide') {
+        document.getElementById('slideId').value = '';
+        document.getElementById('slideTitle').value = '';
+        document.getElementById('slideImageUrl').value = '';
+        document.getElementById('slideLink').value = '';
+    } else if (type === 'ad') {
+        document.getElementById('adId').value = '';
+        document.getElementById('adContent').value = '';
+        document.getElementById('adLink').value = '';
+    }
+        }
+                        
