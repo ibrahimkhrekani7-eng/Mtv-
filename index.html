@@ -14,11 +14,11 @@
     <div id="app">
         <nav class="navbar glass">
             <div class="nav-left">
-                <i data-lucide="tv" class="app-icon"></i>
+                <i data-lucide="tv" class="app-icon" style="color: var(--gold); width: 32px; height: 32px;"></i>
             </div>
             <div class="nav-center">
                 <div class="search-bar">
-                    <i data-lucide="search"></i>
+                    <i data-lucide="search" style="color: var(--text-muted); width: 18px;"></i>
                     <input type="text" id="searchInput" placeholder="Search channels..." data-i18n="searchPlaceholder">
                 </div>
             </div>
@@ -34,10 +34,10 @@
         </nav>
 
         <div id="settingsPanel" class="settings-panel glass hidden">
-            <h3 data-i18n="settings">Settings</h3>
+            <h3 data-i18n="settings" style="margin-bottom: 15px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Settings</h3>
             <div class="setting-group">
                 <label data-i18n="language">Language</label>
-                <select id="languageSelect" onchange="changeLanguage(this.value)">
+                <select id="languageSelect">
                     <option value="en">English</option>
                     <option value="ku">Kurdish</option>
                     <option value="ar">Arabic</option>
@@ -47,38 +47,43 @@
             </div>
             <div class="setting-group">
                 <label data-i18n="theme">Theme</label>
-                <button id="themeToggle" class="btn-gold" onclick="toggleTheme()">Toggle Light/Dark</button>
+                <button id="themeToggle" class="category-btn" style="width: 100%; justify-content: center;">
+                    <i data-lucide="moon-star"></i> Toggle Theme
+                </button>
             </div>
             <div class="setting-group">
                 <label data-i18n="adminInfo">Developer Info</label>
-                <div class="dev-info">
-                    </div>
+                <div class="dev-info glass" style="padding: 10px; border-radius: 10px; font-size: 13px;">
+                    <p>IPTV App v2.0</p>
+                </div>
             </div>
-            <a href="admin.html" class="btn-gold block-btn" style="text-align:center; margin-top:10px; display:block; text-decoration:none;" data-i18n="adminPanel">Admin Panel</a>
+            <a href="admin.html" class="category-btn active" style="text-align:center; margin-top:20px; display:flex; justify-content:center; text-decoration:none;" data-i18n="adminPanel">Admin Panel</a>
         </div>
 
         <div id="notificationsPanel" class="notifications-panel glass hidden">
-            <h3 data-i18n="notifications">Notifications</h3>
+            <h3 data-i18n="notifications" style="margin-bottom: 15px;">Notifications</h3>
             <div id="notificationsList"></div>
         </div>
 
         <main class="main-content">
-            <div class="slider-container">
-                <div class="slider" id="slider"></div>
+            <div class="slider-container glass">
+                <div class="slider" id="slider">
+                    </div>
             </div>
 
             <div class="categories-wrapper">
-                <div class="categories-scroll" id="categoriesList"></div>
+                <div id="categoriesList" class="categories-scroll">
+                    </div>
             </div>
 
-            <div class="ads-section glass" id="adsSection" style="display: none;">
-                <p data-i18n="advertisement">Advertisement</p>
-            </div>
+            <div class="ads-section glass" id="adsSection">
+                </div>
 
-            <div class="channels-grid" id="channelsGrid"></div>
+            <div class="channels-grid" id="channelsGrid">
+                </div>
         </main>
 
-        <div class="bottom-nav glass">
+        <nav class="bottom-nav glass">
             <div class="nav-item active" data-tab="home">
                 <i data-lucide="home"></i>
                 <span data-i18n="home">Home</span>
@@ -91,16 +96,20 @@
                 <i data-lucide="monitor-play"></i>
                 <span data-i18n="tvMode">TV Mode</span>
             </div>
-        </div>
+        </nav>
 
-        <div id="tvModeModal" class="tv-mode-modal hidden">
+        <div id="tvModeModal" class="tv-mode-modal">
             <div class="player-header glass">
-                <button id="closePlayerBtn" class="icon-btn" onclick="closePlayer()"><i data-lucide="arrow-left"></i></button>
-                <h2 id="playerTitle">Channel Name</h2>
-                <button id="fullscreenBtn" class="icon-btn"><i data-lucide="maximize"></i></button>
+                <button id="closePlayerBtn" class="icon-btn" style="background: rgba(0,0,0,0.5); border-radius: 50%; padding: 8px;">
+                    <i data-lucide="arrow-left" style="color: white;"></i>
+                </button>
+                <h2 id="playerTitle" style="font-size: 16px; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Channel Name</h2>
+                <button id="fullscreenBtn" class="icon-btn" style="background: rgba(0,0,0,0.5); border-radius: 50%; padding: 8px;">
+                    <i data-lucide="maximize" style="color: white;"></i>
+                </button>
             </div>
             <div class="video-container">
-                <video id="videoPlayer" controls autoplay></video>
+                <video id="videoPlayer" playsinline></video>
             </div>
         </div>
     </div>
