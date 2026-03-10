@@ -1,4 +1,4 @@
-import { db } from './firebase-config.js';
+import { db } from 'firebase-config.js';
 import { collection, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const translations = {
@@ -134,7 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
     onSnapshot(collection(db, 'notifications'), (snapshot) => {
         state.notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp);
         updateNotifBadge();
-        if (!document.getElementById('notificationsPanel').classList.contains('hidden')) {
+        const notifPanel = document.getElementById('notificationsPanel');
+        if (notifPanel && !notifPanel.classList.contains('hidden')) {
             renderNotifications();
         }
     }, (error) => {
@@ -180,14 +181,15 @@ function initTheme() {
     document.documentElement.setAttribute('data-theme', state.theme);
 }
 
-function toggleTheme() {
+window.toggleTheme = function() { // Made global for onclick handlers if needed
     state.theme = state.theme === 'dark' ? 'light' : 'dark';
     localStorage.setItem('iptv_theme', state.theme);
     initTheme();
 }
 
 function initLanguage() {
-    document.getElementById('languageSelect').value = state.language;
+    const langSelect = document.getElementById('languageSelect');
+    if (langSelect) langSelect.value = state.language;
     applyTranslations();
     if (['ar', 'ku', 'fa'].includes(state.language)) {
         document.body.setAttribute('dir', 'rtl');
@@ -210,7 +212,7 @@ function applyTranslations() {
     });
 }
 
-function changeLanguage(lang) {
+window.changeLanguage = function(lang) { // Made global for onchange handlers
     state.language = lang;
     localStorage.setItem('iptv_lang', lang);
     initLanguage();
@@ -298,15 +300,19 @@ function renderChannels(filterFavs = false) {
     let adIndex = 0;
 
     filtered.forEach((channel, index) => {
-        // Inject ad every 8 channels (approx 2 rows on desktop)
+        // Inject ad every 8 channels (approx 2 rows on desktop/mobile depending on CSS)
         if (index > 0 && index % 8 === 0 && activeAds.length > 0) {
             const ad = activeAds[adIndex % activeAds.length];
             const adBox = document.createElement('div');
             adBox.className = 'ad-box';
-            if (ad.content.startsWith('http')) {
-                adBox.innerHTML = `<a href="${ad.link || '#'}" target="_blank"><img src="${ad.content}" alt="Ad"></a>`;
+            adBox.style.gridColumn = '1 / -1'; // Span full width of grid
+            adBox.style.margin = '10px 0';
+            adBox.style.textAlign = 'center';
+
+            if (ad.content && ad.content.startsWith('http')) {
+                adBox.innerHTML = `<a href="${ad.link || '#'}" target="_blank"><img src="${ad.content}" alt="Ad" style="max-width:100%; border-radius:8px;"></a>`;
             } else {
-                adBox.innerHTML = ad.content; // Script or HTML
+                adBox.innerHTML = ad.content || ''; // Script or HTML
             }
             grid.appendChild(adBox);
             adIndex++;
@@ -335,6 +341,7 @@ function renderChannels(filterFavs = false) {
     // Setup Fav Buttons
     document.querySelectorAll('.fav-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent opening player when clicking fav
             const id = e.currentTarget.getAttribute('data-id');
             toggleFavorite(id);
         });
@@ -349,7 +356,7 @@ function renderNotifications() {
     const visibleNotifs = state.notifications.filter(n => !state.deletedNotifs.includes(n.id));
     
     if (visibleNotifs.length === 0) {
-        list.innerHTML = '<p class="text-muted text-center">No notifications</p>';
+        list.innerHTML = '<p class="text-muted text-center" style="padding: 20px;">No new notifications</p>';
         updateNotifBadge();
         return;
     }
@@ -357,11 +364,17 @@ function renderNotifications() {
     visibleNotifs.forEach(n => {
         const div = document.createElement('div');
         div.className = 'notif-item';
+        div.style.padding = '15px';
+        div.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+        div.style.position = 'relative';
+
         div.innerHTML = `
-            <h4>${n.title}</h4>
-            <p class="text-muted" style="font-size: 0.85rem; margin-top: 5px;">${n.message}</p>
-            <div class="notif-time">${new Date(n.timestamp).toLocaleString()}</div>
-            <button class="notif-delete-btn" data-id="${n.id}"><i data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>
+            <h4 style="margin: 0 0 5px 0;">${n.title}</h4>
+            <p class="text-muted" style="font-size: 0.85rem; margin: 0 0 5px 0;">${n.message}</p>
+            <div class="notif-time" style="font-size: 0.75rem; color: #888;">${new Date(n.timestamp).toLocaleString()}</div>
+            <button class="notif-delete-btn" data-id="${n.id}" style="position: absolute; right: 10px; top: 15px; background: none; border: none; color: #ff4444; cursor: pointer;">
+                <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+            </button>
         `;
         list.appendChild(div);
     });
@@ -369,7 +382,7 @@ function renderNotifications() {
 
     document.querySelectorAll('.notif-delete-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const id = e.currentTarget.getAttribute('data-id');
+            const id = e.currentTarget.closest('button').getAttribute('data-id');
             state.deletedNotifs.push(id);
             localStorage.setItem('iptv_deleted_notifs', JSON.stringify(state.deletedNotifs));
             renderNotifications();
@@ -383,7 +396,7 @@ function updateNotifBadge() {
     if(!badge) return;
     const visibleNotifs = state.notifications.filter(n => !state.deletedNotifs.includes(n.id));
     badge.textContent = visibleNotifs.length;
-    badge.style.display = visibleNotifs.length > 0 ? 'block' : 'none';
+    badge.style.display = visibleNotifs.length > 0 ? 'flex' : 'none';
 }
 
 function toggleFavorite(id) {
@@ -401,7 +414,7 @@ function toggleFavorite(id) {
     }
 }
 
-// Player Logic
+// Player & TV Mode Logic
 let hls = null;
 let tvTimeout;
 let currentChannelIndex = 0;
@@ -415,18 +428,29 @@ function openPlayer(channel) {
     if(!modal || !video || !container) return;
     
     modal.classList.remove('hidden');
+    modal.style.display = 'block'; // Ensure it shows if hidden class uses display:none
     
-    // Fullscreen immediately
+    // Request Fullscreen immediately if possible
     if (container.requestFullscreen) {
-        container.requestFullscreen().catch(err => console.log(err));
+        container.requestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
+    } else if (container.webkitRequestFullscreen) { /* Safari */
+        container.webkitRequestFullscreen();
+    } else if (container.msRequestFullscreen) { /* IE11 */
+        container.msRequestFullscreen();
     }
     
     playStream(channel.streamUrl, video);
     
-    // Setup TV UI
+    // Setup TV UI Data
     tvChannels = state.currentCategory === 'all' ? state.channels : state.channels.filter(c => c.category === state.currentCategory);
+    
+    // If the clicked channel is not in the current category list (e.g., opened from search), reset to all
     currentChannelIndex = tvChannels.findIndex(c => c.id === channel.id);
-    if(currentChannelIndex === -1) currentChannelIndex = 0;
+    if(currentChannelIndex === -1) {
+        tvChannels = state.channels;
+        currentChannelIndex = tvChannels.findIndex(c => c.id === channel.id);
+        if(currentChannelIndex === -1) currentChannelIndex = 0;
+    }
     
     renderTVCategories();
     renderTVChannels();
@@ -434,15 +458,21 @@ function openPlayer(channel) {
 }
 
 function playStream(url, video) {
+    if (!url || !video) return;
+
     if (Hls.isSupported()) {
         if (hls) hls.destroy();
-        hls = new Hls();
+        hls = new Hls({
+            debug: false,
+            enableWorker: true
+        });
         hls.loadSource(url);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, function() {
             video.play().catch(e => console.log("Auto-play prevented"));
         });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        // For Safari
         video.src = url;
         video.addEventListener('loadedmetadata', function() {
             video.play().catch(e => console.log("Auto-play prevented"));
@@ -450,18 +480,26 @@ function playStream(url, video) {
     }
 }
 
-function closePlayer() {
+window.closePlayer = function() { // Made global for onclick from HTML
     const modal = document.getElementById('tvModeModal');
     const video = document.getElementById('videoPlayer');
-    if(modal) modal.classList.add('hidden');
+    
+    if(modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+    
     if(video) {
         video.pause();
-        video.src = '';
+        video.removeAttribute('src');
+        video.load();
     }
+    
     if (hls) {
         hls.destroy();
         hls = null;
     }
+    
     if (document.fullscreenElement) {
         document.exitFullscreen().catch(err => console.log(err));
     }
@@ -470,15 +508,11 @@ function closePlayer() {
 function showTVUI() {
     const container = document.getElementById('tvModeContainer');
     if(!container) return;
+    
     container.classList.remove('tv-ui-hidden');
+    
     clearTimeout(tvTimeout);
-    tvTimeout = setTimeout(() => {
-        container.classList.add('tv
-     function showTVUI() {
-    const container = document.getElementById('tvModeContainer');
-    if(!container) return;
-    container.classList.remove('tv-ui-hidden');
-    clearTimeout(tvTimeout);
+    // Hide UI after 4 seconds of inactivity
     tvTimeout = setTimeout(() => {
         container.classList.add('tv-ui-hidden');
     }, 4000);
@@ -487,7 +521,8 @@ function showTVUI() {
 function renderTVCategories() {
     const list = document.getElementById('tvCategoriesList');
     if(!list) return;
-    list.innerHTML = `<button class="category-btn ${state.currentCategory === 'all' ? 'active' : ''}" data-category="all" style="width:100%; text-align:left;">All Channels</button>`;
+    
+    list.innerHTML = `<button class="category-btn ${state.currentCategory === 'all' ? 'active' : ''}" data-category="all" style="width:100%; text-align:left; padding: 10px; margin-bottom: 5px; border-radius: 5px;">All Channels</button>`;
     
     state.categories.forEach(cat => {
         const btn = document.createElement('button');
@@ -495,6 +530,9 @@ function renderTVCategories() {
         btn.setAttribute('data-category', cat.name);
         btn.style.width = '100%';
         btn.style.textAlign = 'left';
+        btn.style.padding = '10px';
+        btn.style.marginBottom = '5px';
+        btn.style.borderRadius = '5px';
         btn.innerHTML = `<i data-lucide="${cat.icon}" style="width:16px; height:16px; margin-right:5px; display:inline-block; vertical-align:middle;"></i> ${cat.name}`;
         list.appendChild(btn);
     });
@@ -502,144 +540,15 @@ function renderTVCategories() {
 
     list.querySelectorAll('.category-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            // Remove active from all, add to clicked
+            list.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+
             state.currentCategory = e.currentTarget.getAttribute('data-category');
             tvChannels = state.currentCategory === 'all' ? state.channels : state.channels.filter(c => c.category === state.currentCategory);
             currentChannelIndex = 0;
-            renderTVCategories();
+            
             renderTVChannels();
+            
             if(tvChannels.length > 0) {
-                playStream(tvChannels[0].streamUrl, document.getElementById('videoPlayer'));
-            }
-            showTVUI();
-        });
-    });
-}
-
-function renderTVChannels() {
-    const overlay = document.getElementById('tvChannelsOverlay');
-    if(!overlay) return;
-    overlay.innerHTML = '';
-    
-    tvChannels.forEach((channel, index) => {
-        const card = document.createElement('div');
-        card.className = `tv-channel-card ${index === currentChannelIndex ? 'active' : ''}`;
-        card.innerHTML = `
-            <img src="${channel.logoUrl}" alt="${channel.name}">
-            <span>${channel.name}</span>
-        `;
-        card.addEventListener('click', () => {
-            currentChannelIndex = index;
-            playStream(channel.streamUrl, document.getElementById('videoPlayer'));
-            renderTVChannels();
-            showTVUI();
-        });
-        overlay.appendChild(card);
-        
-        if(index === currentChannelIndex) {
-            card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        }
-    });
-}
-
-// Event Listeners
-function setupEventListeners() {
-    // Search
-    const searchInput = document.getElementById('searchInput');
-    if(searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            state.searchQuery = e.target.value;
-            const activeTab = document.querySelector('.bottom-nav .active');
-            if(activeTab) renderChannels(activeTab.getAttribute('data-tab') === 'favorites');
-        });
-    }
-
-    // Bottom Nav
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            const tab = e.currentTarget.getAttribute('data-tab');
-            
-            if (tab === 'tvmode') {
-                if (state.channels.length > 0) {
-                    openPlayer(state.channels[0]); // Open first channel in TV mode
-                }
-                return;
-            }
-            
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            
-            if (tab === 'favorites') {
-                renderChannels(true);
-            } else {
-                renderChannels(false);
-            }
-        });
-    });
-
-    // Panels
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsPanel = document.getElementById('settingsPanel');
-    const notifBtn = document.getElementById('notificationBtn');
-    const notifPanel = document.getElementById('notificationsPanel');
-
-    if(settingsBtn && settingsPanel && notifBtn && notifPanel) {
-        settingsBtn.addEventListener('click', () => {
-            settingsPanel.classList.toggle('hidden');
-            notifPanel.classList.add('hidden');
-        });
-
-        notifBtn.addEventListener('click', () => {
-            notifPanel.classList.toggle('hidden');
-            settingsPanel.classList.add('hidden');
-            renderNotifications();
-        });
-
-        // Close panels when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!settingsBtn.contains(e.target) && !settingsPanel.contains(e.target)) {
-                settingsPanel.classList.add('hidden');
-            }
-            if (!notifBtn.contains(e.target) && !notifPanel.contains(e.target)) {
-                notifPanel.classList.add('hidden');
-            }
-        });
-    }
-
-    // Settings Actions
-    const themeToggle = document.getElementById('themeToggle');
-    if(themeToggle) themeToggle.addEventListener('click', toggleTheme);
-    
-    const langSelect = document.getElementById('languageSelect');
-    if(langSelect) langSelect.addEventListener('change', (e) => changeLanguage(e.target.value));
-
-    // Player Actions
-    const closePlayerBtn = document.getElementById('closePlayerBtn');
-    if(closePlayerBtn) closePlayerBtn.addEventListener('click', closePlayer);
-    
-    const tvContainer = document.getElementById('tvModeContainer');
-    if(tvContainer) {
-        tvContainer.addEventListener('mousemove', showTVUI);
-        tvContainer.addEventListener('click', showTVUI);
-    }
-
-    // Keyboard Navigation
-    document.addEventListener('keydown', (e) => {
-        const modal = document.getElementById('tvModeModal');
-        if (modal && !modal.classList.contains('hidden')) {
-            showTVUI();
-            if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
-                if(tvChannels.length === 0) return;
-                currentChannelIndex = (currentChannelIndex + 1) % tvChannels.length;
-                playStream(tvChannels[currentChannelIndex].streamUrl, document.getElementById('videoPlayer'));
-                renderTVChannels();
-            } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
-                if(tvChannels.length === 0) return;
-                currentChannelIndex = (currentChannelIndex - 1 + tvChannels.length) % tvChannels.length;
-                playStream(tvChannels[currentChannelIndex].streamUrl, document.getElementById('videoPlayer'));
-                renderTVChannels();
-            } else if (e.key === 'Escape') {
-                closePlayer();
-            }
-        }
-    });
-}   
+      
