@@ -1,8 +1,8 @@
 {
   "name": "IPTV Live Channels",
-  "short_name": "ntv+",
+  "short_name": "mtv+",
   "description": "Professional IPTV & Live Channels App",
-  "start_url": "index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#D4AF37",
