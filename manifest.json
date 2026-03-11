@@ -8,12 +8,12 @@
   "theme_color": "#D4AF37",
   "icons": [
     {
-      "src": "https://picsum.photos/seed/icon192/192",
+      "src": "https://i.supaimg.com/a2f34881-3b19-43f8-bdda-8a5e913800c7/957ba8f0-8253-4162-ba94-8b4ef6452ec6.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://picsum.photos/seed/icon512/512",
+      "src": "https://i.supaimg.com/a2f34881-3b19-43f8-bdda-8a5e913800c7/5d51d5f8-5b81-464b-8ddb-a4b3c1c16dcc.png",
       "sizes": "512x512",
       "type": "image/png"
     }
