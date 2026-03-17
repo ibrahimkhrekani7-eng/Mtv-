@@ -22,7 +22,8 @@ let state = {
     searchQuery: ''
 };
 
-let hls = null;
+// Shaka Player Variables
+let shakaPlayer = null;
 let slideIndex = 0;
 let slideInterval;
 
@@ -32,6 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initLanguage();
     setupEventListeners();
+    
+    // ئامادەکردنی Shaka Player
+    initShakaApp();
     
     // Firebase Listeners
     onSnapshot(collection(db, 'channels'), (snapshot) => {
@@ -51,13 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onSnapshot(collection(db, 'notifications'), (snapshot) => {
         state.notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        updateNotifBadge();
+        // updateNotifBadge(); // ئەگەر فەنکشنی بۆ هەیە
     });
 
     onSnapshot(doc(db, 'settings', 'ads'), (docSnap) => {
         if (docSnap.exists()) {
             state.ads = docSnap.data();
-            renderAds();
+            // renderAds(); // ئەگەر فەنکشنی بۆ هەیە
         }
     });
 
@@ -67,13 +71,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// --- Shaka Player Setup ---
+function initShakaApp() {
+    if (window.shaka) {
+        shaka.polyfill.installAll();
+        if (shaka.Player.isBrowserSupported()) {
+            const video = document.getElementById('videoPlayer');
+            shakaPlayer = new shaka.Player(video);
+            
+            shakaPlayer.addEventListener('error', (event) => {
+                console.error('Shaka Error:', event.detail);
+            });
+        } else {
+            console.error('Browser not supported for Shaka Player!');
+        }
+    }
+}
+
+async function openPlayer(channel) {
+    const modal = document.getElementById('tvModeModal');
+    const title = document.getElementById('playerTitle');
+    const video = document.getElementById('videoPlayer');
+    
+    modal.style.display = 'block';
+    title.textContent = channel.name;
+
+    // لێرەدا پشت بە ناوی لینکی کەناڵەکە دەبەستین لە داتابەیس (url یان streamUrl)
+    const streamLink = channel.url || channel.streamUrl;
+
+    if (!streamLink) {
+        console.error("هیچ لینکێک نەدۆزرایەوە بۆ ئەم کەناڵە");
+        return;
+    }
+
+    try {
+        if (shakaPlayer) {
+            await shakaPlayer.load(streamLink);
+            console.log('Video loaded successfully!');
+            video.play();
+        } else {
+            // ئەگەر ئامێرەکە خۆی پشتگیری HLS بکات وەک iPhone
+            video.src = streamLink;
+            video.play();
+        }
+    } catch (e) {
+        console.error('Error loading video', e);
+    }
+}
+
+window.closePlayer = function() {
+    const modal = document.getElementById('tvModeModal');
+    const video = document.getElementById('videoPlayer');
+    
+    modal.style.display = 'none';
+    
+    video.pause();
+    if (shakaPlayer) {
+        shakaPlayer.unload();
+    } else {
+        video.removeAttribute('src');
+        video.load();
+    }
+}
+
 // --- Theme & Language ---
 function initTheme() {
     document.documentElement.setAttribute('data-theme', state.theme);
 }
 
 function initLanguage() {
-    document.getElementById('languageSelect').value = state.language;
+    const select = document.getElementById('languageSelect');
+    if (select) select.value = state.language;
     applyTranslations();
     document.body.setAttribute('dir', ['ar', 'ku', 'fa'].includes(state.language) ? 'rtl' : 'ltr');
 }
@@ -89,7 +157,7 @@ function applyTranslations() {
     });
 }
 
-// --- Slider Logic (Auto-Moving) ---
+// --- Slider Logic ---
 function renderSlider() {
     const slider = document.getElementById('slider');
     if (!slider || state.slides.length === 0) return;
@@ -102,7 +170,7 @@ function renderSlider() {
     state.slides.forEach((slide) => {
         const div = document.createElement('div');
         div.className = 'slide';
-        div.style.backgroundImage = `url(${slide.imageUrl})`;
+        div.style.backgroundImage = `url('${slide.imageUrl}')`;
         div.innerHTML = `<div class="slide-content"><h2>${slide.title}</h2></div>`;
         if (slide.link) div.onclick = () => window.open(slide.link, '_blank');
         slider.appendChild(div);
@@ -119,7 +187,6 @@ function startAutoSlide() {
         const slidesCount = state.slides.length;
         slideIndex = (slideIndex + 1) % slidesCount;
         
-        // پشتیبانی لە RTL و LTR بۆ جوڵەی سڵایدەرەکە
         const direction = document.body.getAttribute('dir') === 'rtl' ? '' : '-';
         slider.style.transform = `translateX(${direction}${slideIndex * 100}%)`;
     }, 5000);
@@ -144,11 +211,24 @@ function renderCategories() {
     });
     lucide.createIcons();
     
-    document.getElementById('btn-all').onclick = () => {
-        state.currentCategory = 'all';
-        renderCategories();
-        renderChannels(false);
-    };
+    const btnAll = document.getElementById('btn-all');
+    if (btnAll) {
+        btnAll.onclick = () => {
+            state.currentCategory = 'all';
+            renderCategories();
+            renderChannels(false);
+        };
+    }
+}
+
+window.toggleFavorite = (channelId) => {
+    if (state.favorites.includes(channelId)) {
+        state.favorites = state.favorites.filter(id => id !== channelId);
+    } else {
+        state.favorites.push(channelId);
+    }
+    localStorage.setItem('iptv_favs', JSON.stringify(state.favorites));
+    renderChannels(document.querySelector('.nav-item.active')?.getAttribute('data-tab') === 'favorites');
 }
 
 function renderChannels(filterFavs = false) {
@@ -179,108 +259,8 @@ function renderChannels(filterFavs = false) {
     lucide.createIcons();
 }
 
-function renderAds() {
-    const adSection = document.getElementById('adsSection');
-    if (state.ads.active && state.ads.bannerUrl) {
-        adSection.style.display = 'flex';
-        adSection.style.backgroundImage = `url(${state.ads.bannerUrl})`;
-        adSection.style.height = "90px";
-        adSection.style.backgroundSize = "contain";
-        adSection.style.backgroundRepeat = "no-repeat";
-        adSection.style.backgroundPosition = "center";
-        adSection.onclick = () => window.open(state.ads.link, '_blank');
-    } else {
-        adSection.style.display = 'none';
-    }
-}
-
-function updateNotifBadge() {
-    const badge = document.getElementById('notifBadge');
-    if (badge) {
-        badge.textContent = state.notifications.length;
-        badge.style.display = state.notifications.length > 0 ? 'block' : 'none';
-    }
-}
-
-window.toggleFavorite = function(id) {
-    if (state.favorites.includes(id)) {
-        state.favorites = state.favorites.filter(f => f !== id);
-    } else {
-        state.favorites.push(id);
-    }
-    localStorage.setItem('iptv_favs', JSON.stringify(state.favorites));
-    renderChannels(document.querySelector('.nav-item.active')?.getAttribute('data-tab') === 'favorites');
-};
-
-// --- Player Logic (Full Responsive) ---
-function openPlayer(channel) {
-    if (!channel) return;
-    const modal = document.getElementById('tvModeModal');
-    const video = document.getElementById('videoPlayer');
-    document.getElementById('playerTitle').textContent = channel.name;
-    
-    modal.classList.remove('hidden');
-    modal.style.display = "flex";
-    
-    // سێتکردنی ڤیدیۆ بۆ هەموو شاشەکە
-    video.style.width = "100%";
-    video.style.height = "100%";
-    video.style.objectFit = "contain";
-
-    if (Hls.isSupported()) {
-        if (hls) hls.destroy();
-        hls = new Hls();
-        hls.loadSource(channel.streamUrl);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play().catch(() => console.log("User interaction required"));
-        });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = channel.streamUrl;
-        video.play();
-    }
-}
-
-function closePlayer() {
-    const modal = document.getElementById('tvModeModal');
-    modal.classList.add('hidden');
-    modal.style.display = "none";
-    const video = document.getElementById('videoPlayer');
-    video.pause();
-    if (hls) hls.destroy();
-}
-
 // --- Event Listeners ---
 function setupEventListeners() {
-    document.getElementById('searchInput').oninput = (e) => {
-        state.searchQuery = e.target.value;
-        renderChannels(document.querySelector('.nav-item.active')?.getAttribute('data-tab') === 'favorites');
-    };
-
-    document.getElementById('themeToggle').onclick = () => {
-        state.theme = state.theme === 'dark' ? 'light' : 'dark';
-        localStorage.setItem('iptv_theme', state.theme);
-        initTheme();
-    };
-
-    document.getElementById('languageSelect').onchange = (e) => {
-        state.language = e.target.value;
-        localStorage.setItem('iptv_lang', state.language);
-        initLanguage();
-        renderCategories();
-    };
-
-    document.getElementById('settingsBtn').onclick = () => document.getElementById('settingsPanel').classList.toggle('hidden');
-    
-    document.getElementById('notificationBtn').onclick = () => {
-        const panel = document.getElementById('notificationsPanel');
-        panel.classList.toggle('hidden');
-        if (!panel.classList.contains('hidden')) {
-            const list = document.getElementById('notificationsList');
-            list.innerHTML = state.notifications.map(n => `<div class="notif-item"><h4>${n.title}</h4><p>${n.message}</p></div>`).join('');
-        }
-    };
-
     document.querySelectorAll('.nav-item').forEach(item => {
         item.onclick = () => {
             const tab = item.getAttribute('data-tab');
@@ -295,12 +275,24 @@ function setupEventListeners() {
         };
     });
 
-    document.getElementById('closePlayerBtn').onclick = closePlayer;
+    const closeBtn = document.getElementById('closePlayerBtn');
+    if (closeBtn) closeBtn.onclick = window.closePlayer;
     
-    document.getElementById('fullscreenBtn').onclick = () => {
-        const video = document.getElementById('videoPlayer');
-        if (video.requestFullscreen) video.requestFullscreen();
-        else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
-        else if (video.msRequestFullscreen) video.msRequestFullscreen();
-    };
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    if (fullscreenBtn) {
+        fullscreenBtn.onclick = () => {
+            const video = document.getElementById('videoPlayer');
+            if (video.requestFullscreen) video.requestFullscreen();
+            else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+            else if (video.msRequestFullscreen) video.msRequestFullscreen();
+        };
+    }
+    
+    const searchInput = document.getElementById('searchInput');
+    if(searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            state.searchQuery = e.target.value;
+            renderChannels();
+        });
+    }
 }
