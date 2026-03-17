@@ -1,5 +1,5 @@
 /* =========================================
-   1. Base & Variables
+   1. Base & Variables (Original - 100%)
    ========================================= */
 :root {
     --bg-color: #0a0a0a;
@@ -27,7 +27,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', -apple-system, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 body {
@@ -35,8 +35,6 @@ body {
     color: var(--text-color);
     transition: background-color 0.3s, color 0.3s;
     overflow-x: hidden;
-    padding-top: 75px; /* بۆ ئەوەی نەچێتە ژێر نەب بار */
-    padding-bottom: 85px; /* بۆ ئەوەی نەچێتە ژێر بۆتۆم ناڤ */
 }
 
 /* Glassmorphism Utilities */
@@ -48,43 +46,87 @@ body {
     box-shadow: var(--glass-shadow);
 }
 
+/* Typography & Colors */
+.gold-text { color: var(--gold); }
+.text-muted { color: var(--text-muted); }
+
 /* Buttons */
 .btn-gold {
-    background-color: var(--gold); color: #000; border: none;
-    padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600;
-    cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 0.5rem;
+    background-color: var(--gold);
+    color: #000;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
-.btn-gold:hover { background-color: var(--gold-hover); transform: translateY(-2px); }
-
+.btn-gold:hover {
+    background-color: var(--gold-hover);
+    transform: translateY(-2px);
+}
+.btn-outline {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--glass-border);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-outline:hover {
+    background: var(--glass-bg);
+}
 .icon-btn {
-    background: transparent; border: none; color: var(--text-color);
-    cursor: pointer; padding: 0.5rem; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; transition: 0.2s;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.icon-btn:hover {
+    background: var(--glass-bg);
 }
 
 /* =========================================
-   2. MAIN APP - NAVBAR & SEARCH (FIXED)
+   2. MAIN APP STYLES
    ========================================= */
+#app {
+    padding-bottom: 80px; 
+    padding-top: 70px; 
+}
+
+/* Navbar */
 .navbar {
     position: fixed;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 70px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 1rem;
-    z-index: 1000;
+    padding: 0 1.5rem;
+    z-index: 100;
 }
-
-.nav-left .app-icon { color: var(--gold); width: 32px; height: 32px; }
-
+.nav-left .app-icon {
+    color: var(--gold);
+    width: 32px;
+    height: 32px;
+}
 .nav-center {
     flex: 1;
     max-width: 500px;
-    margin: 0 10px;
-    display: flex; /* دڵنیایی لە دەرکەوتن */
+    margin: 0 1.5rem;
 }
-
 .search-bar {
     display: flex;
     align-items: center;
@@ -92,15 +134,42 @@ body {
     border: 1px solid var(--glass-border);
     border-radius: 20px;
     padding: 0.5rem 1rem;
+}
+[data-theme="light"] .search-bar { background: rgba(255,255,255,0.5); }
+.search-bar i {
+    color: var(--text-muted);
+    width: 18px;
+    height: 18px;
+}
+.search-bar input {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    outline: none;
+    margin-left: 0.5rem;
     width: 100%;
 }
-
-.search-bar input {
-    background: transparent; border: none; color: var(--text-color);
-    outline: none; margin-left: 0.5rem; width: 100%;
+.nav-right {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
 }
-
-.nav-right { display: flex; gap: 1rem; align-items: center; }
+.notification-bell, .settings-menu-btn {
+    position: relative;
+    cursor: pointer;
+    color: var(--text-color);
+}
+.badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--danger);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: bold;
+}
 
 /* Panels */
 .settings-panel, .notifications-panel {
@@ -110,132 +179,389 @@ body {
     width: 300px;
     border-radius: 16px;
     padding: 1.5rem;
-    z-index: 1001;
-    transition: 0.3s ease;
+    z-index: 101;
+    transform-origin: top right;
+    transition: transform 0.3s, opacity 0.3s;
 }
-
-/* لە جیاتی opacity، display بەکاربێ بۆ دڵنیایی زیاتر */
 .hidden {
-    display: none !important;
+    transform: scale(0.95);
+    opacity: 0;
+    pointer-events: none;
+}
+.setting-group {
+    margin-top: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.setting-group select {
+    background: var(--glass-bg);
+    color: var(--text-color);
+    border: 1px solid var(--glass-border);
+    padding: 0.5rem;
+    border-radius: 8px;
+    outline: none;
+}
+.dev-info {
+    background: rgba(0,0,0,0.2);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+.social-links {
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+.social-links i { cursor: pointer; color: var(--gold); }
+
+#notificationsList {
+    margin-top: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+.notif-item {
+    background: rgba(0,0,0,0.2);
+    padding: 0.8rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--gold);
+}
+.notif-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
 }
 
-/* =========================================
-   3. CONTENT (Slider, Categories, Grid)
-   ========================================= */
+/* Slider */
 .slider-container {
-    width: 100%; height: 220px; border-radius: 20px;
-    overflow: hidden; position: relative; margin-bottom: 2rem;
+    width: 100%;
+    height: 250px;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 2rem;
 }
-.slider { display: flex; height: 100%; transition: 0.5s ease-in-out; }
-.slide { min-width: 100%; height: 100%; background-size: cover; background-position: center; }
+.slider {
+    display: flex;
+    height: 100%;
+    transition: transform 0.5s ease-in-out;
+}
+.slide {
+    min-width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+.slide-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2rem;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    color: white;
+}
 
-.categories-scroll {
-    display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 10px;
+/* Categories */
+.categories-wrapper {
+    margin-bottom: 2rem;
+    overflow-x: auto;
     scrollbar-width: none;
 }
-.categories-scroll::-webkit-scrollbar { display: none; }
-
-.category-btn {
-    background: var(--glass-bg); border: 1px solid var(--glass-border);
-    color: var(--text-color); padding: 0.6rem 1.2rem; border-radius: 20px;
-    white-space: nowrap; cursor: pointer; transition: 0.2s;
+.categories-wrapper::-webkit-scrollbar { display: none; }
+.categories-scroll {
+    display: flex;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
 }
-.category-btn.active { background: var(--gold); color: #000; }
+.category-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-color);
+    padding: 0.6rem 1.5rem;
+    border-radius: 20px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+.category-btn:hover { background: rgba(255,255,255,0.1); }
+.category-btn.active {
+    background: var(--gold);
+    color: #000;
+    border-color: var(--gold);
+}
 
+/* Ads Section */
+.ads-section {
+    width: 100%;
+    height: 100px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+    color: var(--text-muted);
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+}
+
+/* Channels Grid */
 .channels-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 1.5rem;
 }
-
 .channel-card {
-    border-radius: 16px; padding: 1.2rem; display: flex;
-    flex-direction: column; align-items: center; gap: 0.8rem;
-    cursor: pointer; transition: 0.3s; border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    border: 1px solid var(--glass-border);
 }
-.channel-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(212,175,55,0.1); }
-.channel-logo { width: 75px; height: 75px; border-radius: 50%; object-fit: cover; background: #fff; padding: 3px; }
+.channel-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px 0 rgba(212, 175, 55, 0.15);
+}
+.channel-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+    padding: 5px;
+}
+.channel-name {
+    font-weight: 600;
+    text-align: center;
+    font-size: 0.9rem;
+}
+.fav-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+.fav-btn.active { color: var(--gold); fill: var(--gold); }
 
-/* Bottom Nav */
+/* Bottom Navigation */
 .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
-    display: flex; justify-content: space-around; align-items: center;
-    z-index: 1000; border-top: 1px solid var(--glass-border);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+    border-top: 1px solid var(--glass-border);
     border-radius: 20px 20px 0 0;
 }
-.nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; }
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    font-size: 0.8rem;
+}
 .nav-item.active { color: var(--gold); }
 
+/* TV Mode Modal - FIXED REFRESH ISSUE */
+.tv-mode-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000;
+    z-index: 1000;
+    display: none; /* Changed from flex to none */
+    flex-direction: column;
+    transition: opacity 0.3s;
+}
+/* Use JS to add 'active' class when opening */
+.tv-mode-modal.active {
+    display: flex;
+}
+
+.player-header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    z-index: 10;
+    background: linear-gradient(rgba(0,0,0,0.8), transparent);
+}
+.video-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+}
+video { width: 100%; height: 100%; max-height: 100vh; }
+
 /* =========================================
-   4. ADMIN PANEL (RESTORING ALL ORIGINAL)
+   3. ADMIN PANEL STYLES
    ========================================= */
+.admin-body { background-color: #050505; }
 .admin-layout { display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
 .admin-sidebar {
-    width: 260px; border-right: 1px solid var(--glass-border);
-    display: flex; flex-direction: column; background: var(--bg-color);
+    width: 260px;
+    border-right: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-color);
 }
-.sidebar-header { height: 70px; display: flex; align-items: center; padding: 0 1.5rem; border-bottom: 1px solid var(--glass-border); }
-
+.sidebar-header {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    gap: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+.sidebar-nav {
+    padding: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
 .nav-link {
-    display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1.5rem;
-    color: var(--text-muted); text-decoration: none; transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1.5rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.2s;
 }
-.nav-link.active { background: rgba(212, 175, 55, 0.1); color: var(--gold); border-right: 3px solid var(--gold); }
+.nav-link:hover, .nav-link.active {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--gold);
+    border-right: 3px solid var(--gold);
+}
 
-.admin-main { flex: 1; overflow-y: auto; padding-bottom: 100px; }
+/* Main Area */
+.admin-main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+.admin-header {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    padding: 0 2rem;
+    border-bottom: 1px solid var(--glass-border);
+    position: sticky; top: 0; background: var(--bg-color); z-index: 50;
+}
 .admin-content { padding: 2rem; }
+.admin-section { display: none; }
+.admin-section.active { display: block; animation: fadeIn 0.3s ease; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 /* Stats */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem; }
-.stat-card { padding: 1.5rem; border-radius: 16px; display: flex; align-items: center; gap: 1.2rem; }
-.stat-icon { width: 50px; height: 50px; border-radius: 50%; background: rgba(212,175,55,0.1); color: var(--gold); display: flex; align-items: center; justify-content: center; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
+.stat-card { padding: 1.5rem; border-radius: 16px; display: flex; align-items: center; gap: 1.5rem; }
+.stat-icon {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(212, 175, 55, 0.1); color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+}
+.stat-icon i { width: 30px; height: 30px; }
+.stat-info h3 { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+.stat-info p { font-size: 2rem; font-weight: 700; margin-top: 0.5rem; }
+
+/* ADS SECTION - NEW BUTTONS ADDED */
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+
+.ads-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+.ad-admin-card { border-radius: 16px; padding: 1rem; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); }
+.ad-admin-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem; }
+
+.ad-actions { display: flex; gap: 10px; }
+.btn-add-ad { background-color: var(--success); color: #fff; flex: 1; padding: 0.6rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+.btn-remove-ad { background-color: var(--danger); color: #fff; flex: 1; padding: 0.6rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
 
 /* Tables */
-.table-responsive { border-radius: 16px; overflow-x: auto; border: 1px solid var(--glass-border); margin-top: 1.5rem; }
-.admin-table { width: 100%; border-collapse: collapse; }
-.admin-table th, .admin-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--glass-border); }
-.admin-table th { background: rgba(0,0,0,0.2); color: var(--text-muted); }
+.table-responsive { border-radius: 16px; overflow-x: auto; border: 1px solid var(--glass-border); }
+.admin-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+.admin-table th, .admin-table td { padding: 1rem 1.5rem; text-align: left; border-bottom: 1px solid var(--glass-border); }
+.admin-table th { background: rgba(0,0,0,0.2); font-weight: 600; color: var(--text-muted); }
+.admin-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+.admin-table img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
 
-/* Forms & Modals */
-.modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-.modal-content { width: 90%; max-width: 500px; border-radius: 16px; padding: 2rem; }
+/* Forms */
+.form-card { padding: 2rem; border-radius: 16px; max-width: 600px; }
+.form-group { margin-bottom: 1.5rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); }
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
+    color: var(--text-color); padding: 0.8rem 1rem; border-radius: 8px; outline: none;
+}
+
+/* Slider Admin */
+.slider-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+.admin-slide-card { border-radius: 16px; overflow: hidden; position: relative; height: 150px; }
+.admin-slide-card img { width: 100%; height: 100%; object-fit: cover; }
+.admin-slide-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 0.5rem; }
+
+/* Modals */
+.modal {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
+    z-index: 2000;
+}
+.modal-content { width: 100%; max-width: 500px; border-radius: 16px; overflow: hidden; }
+.modal-header { padding: 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
+.modal-body { padding: 1.5rem; }
+.modal-footer { padding: 1.5rem; border-top: 1px solid var(--glass-border); display: flex; justify-content: flex-end; gap: 1rem; }
 
 /* =========================================
-   5. RESPONSIVE (FIXED MOBILE SEARCH)
+   4. RESPONSIVE FIXES
    ========================================= */
+@media (max-width: 1024px) {
+    .admin-sidebar { width: 80px; min-width: 80px; }
+    .admin-sidebar .sidebar-header h2, .admin-sidebar .nav-link span { display: none; }
+    .admin-sidebar .nav-link { justify-content: center; }
+}
+
 @media (max-width: 768px) {
-    /* لێرەدا پێشتر display: none هەبوو بۆ سێرچ بار، ئێستا لام برد */
-    .nav-center {
-        display: flex;
-        max-width: 180px; /* کەمێک بچووکتر بۆ ئەوەی جێگەی دوگمەکان ببێتەوە */
-    }
+    .nav-center { display: none; }
+    .channels-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem; }
+    .channel-logo { width: 70px; height: 70px; }
     
-    .navbar { padding: 0 0.5rem; }
-    
-    .settings-panel { width: calc(100% - 20px); right: 10px; }
-    
-    .channels-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
-    
-    /* Admin Responsive */
+    .admin-layout { flex-direction: column; }
     .admin-sidebar {
-        width: 100%; height: 65px; position: fixed; bottom: 0; top: auto;
-        flex-direction: row; z-index: 1001;
+        width: 100%; height: auto; position: fixed; bottom: 0;
+        z-index: 1000; border-right: none; border-top: 1px solid var(--glass-border);
     }
     .sidebar-header { display: none; }
-    .sidebar-nav { flex-direction: row; padding: 0; width: 100%; justify-content: space-around; }
-    .nav-link { padding: 0.5rem; flex-direction: column; font-size: 10px; gap: 4px; }
-    .nav-link span { display: none; }
-    
-    .admin-main { padding: 1rem; margin-bottom: 70px; }
+    .sidebar-nav { flex-direction: row; padding: 0.5rem; overflow-x: auto; }
+    .nav-link { padding: 0.5rem 1rem; flex-direction: column; gap: 0.2rem; font-size: 0.7rem; white-space: nowrap; }
+    .admin-main { margin-bottom: 80px; }
+    .admin-content { padding: 1rem; }
+    .stats-grid { grid-template-columns: 1fr; }
 }
-
-/* =========================================
-   6. PLAYER MODAL
-   ========================================= */
-.tv-mode-modal {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: #000; z-index: 2000; display: none; flex-direction: column;
-}
-.tv-mode-modal.active { display: flex; }
-.video-container { flex: 1; display: flex; align-items: center; background: #000; }
-video { width: 100%; height: auto; }

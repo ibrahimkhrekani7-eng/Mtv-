@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     
-    <script src="https://ajax.googleapis.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest" defer></script>
     <script src="https://unpkg.com/lucide@latest" defer></script>
 </head>
 <body>
@@ -68,19 +68,19 @@
         <main class="main-content">
             <div class="slider-container glass">
                 <div class="slider" id="slider">
-                </div>
+                    </div>
             </div>
 
             <div class="categories-wrapper">
                 <div id="categoriesList" class="categories-scroll">
-                </div>
+                    </div>
             </div>
 
             <div class="ads-section glass" id="adsSection">
-            </div>
+                </div>
 
             <div class="channels-grid" id="channelsGrid">
-            </div>
+                </div>
         </main>
 
         <nav class="bottom-nav glass">
@@ -98,7 +98,7 @@
             </div>
         </nav>
 
-        <div id="tvModeModal" class="tv-mode-modal" style="display: none;">
+        <div id="tvModeModal" class="tv-mode-modal">
             <div class="player-header glass">
                 <button id="closePlayerBtn" class="icon-btn" style="background: rgba(0,0,0,0.5); border-radius: 50%; padding: 8px;">
                     <i data-lucide="arrow-left" style="color: white;"></i>
@@ -109,7 +109,7 @@
                 </button>
             </div>
             <div class="video-container">
-                <video id="videoPlayer" playsinline controls autoplay style="width: 100%; height: 100%; background: black;"></video>
+                <video id="videoPlayer" playsinline></video>
             </div>
         </div>
     </div>
